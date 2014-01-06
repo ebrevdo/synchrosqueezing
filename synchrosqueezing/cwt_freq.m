@@ -68,4 +68,4 @@ function w = cwt_freq(Wx, dt, opt)
 
   w = real(-1i * w ./ Wx) / (2*pi);
 end
-end
+

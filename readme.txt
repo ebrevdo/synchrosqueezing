@@ -1,4 +1,4 @@
-Synchrosqueezing Toolbox v1.0
+Synchrosqueezing Toolbox v1.1
 Authors: Eugene Brevdo (http://www.math.princeton.edu/~ebrevdo/)
 
 If you use this code in your research, please include the citations to papers
@@ -64,6 +64,9 @@ dft_fw: discrete fourier series
 
 synsq_cwt_fw, synsq_cwt_iw: wavelet-based synchrosqueezing
   forward/inverse transform.
+
+est_riskshrink_thresh: RiskShrink threshold estimator
+  for denoising signals.
 
 tplot, tplot_power: plotting of output of cwt and synsq_cwt
   transforms.

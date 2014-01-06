@@ -55,12 +55,7 @@ function [Wx,as,dWx] = cwt_fw(x, type, nv, dt, opt)
     n = length(x);
 
     % Pad x first
-    [N,n1,n2] = p2up(n);
-
-    xleft = padarray(x, n1, opt.padtype, 'pre');
-    xright = padarray(x, n2, opt.padtype, 'post');
-    x = [xleft(1:n1); x; xright(end-n2+1:end)];
-    clear xleft xright;
+    [x,N,n1,n2] = padsignal(x, opt.padtype);
 
     % Choosing more than this means the wavelet window becomes too short
     noct = log2(N)-1;

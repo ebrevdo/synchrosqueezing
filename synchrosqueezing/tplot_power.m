@@ -65,20 +65,25 @@ function hs = tplot_power(Tx, t, fs, opt)
   % Calculate the median of the absolute values, filtered properly.
   [muTx,Lbdi,Rbdi] = synsq_filtered_time_quantile(aTx, t, fs, opt, .5);
   
+  mlog2 = @(x) x;
+  if opt.clog
+      mlog2 = @(x) log2(x);
+  end
+  
   if (~opt.bd)
       hold on;
-      plot(t(Lbdi), log2(fs), '--k');
-      plot(t(Rbdi), log2(fs), '--k');
+      plot(t(Lbdi), mlog2(fs), '--k');
+      plot(t(Rbdi), mlog2(fs), '--k');
   end
   
   % Mean of aTx plot
   hs(2) = subplot(1,2,2);
   
-  plot(log2(fs), 10*log10(1/Css*muTx));
+  plot(mlog2(fs), 10*log10(1/Css*muTx));
   axis tight;
-  xlim([min(log2(fs)), max(log2(fs))]);
+  xlim([min(mlog2(fs)), max(mlog2(fs))]);
   %  %ylim([min(10*log10(muTx)), max(10*log10(muTx))]);
-  set(gca, 'XTick', cellfun(@(x)log2(str2num(x)), opt.ticklabels));
+  set(gca, 'XTick', cellfun(@(x)mlog2(str2num(x)), opt.ticklabels));
   set(gca, 'XTickLabel', '');
   xlabel('');
   grid on;

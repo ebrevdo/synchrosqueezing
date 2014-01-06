@@ -58,12 +58,10 @@ function [h,opt]=tplot(Tx, t, fs, opt)
         flimi(2) = find(fs <= flim(1), 1, 'first');
     end
        
-
     % Restrict ourselves to this region
     fs = fs(flimi(1):flimi(2));
     Tx = Tx(flimi(1):flimi(2), :);
 
-    lflim = log2(flim);
     lfs = log2(fs);
 
     if (opt.Mlog)
@@ -72,8 +70,15 @@ function [h,opt]=tplot(Tx, t, fs, opt)
       aTx = abs(Tx);
     end
     clear Tx;
-
-    imagesc(t, lfs, aTx);
+    
+    % Check if on a logarithmic freq scale
+    clog = mean(abs(diff(lfs, 2))) < eps*100;
+    opt.clog = clog;
+    if clog
+        imagesc(t, lfs, aTx);
+    else
+        imagesc(t, fs, aTx);
+    end
     h = gcf;
     
     if (fs(2)>fs(1))
@@ -90,13 +95,22 @@ function [h,opt]=tplot(Tx, t, fs, opt)
     colormap(gca, 1-hot(512));
 
     if isempty(opt.ticklabels)
-        tticks = linspace(min(lfs),max(lfs), opt.nticks);
-        opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, 2.^tticks);
+        if clog
+            tticks = linspace(min(lfs),max(lfs), opt.nticks);
+            opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, 2.^tticks);
+        else
+            tticks = linspace(min(fs), max(fs), opt.nticks);
+            opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, tticks);
+        end
     end
 
     % Set ticks according to tick labels
     ticks = cellfun(@(x)str2num(x), opt.ticklabels);
-    set(gca, 'YTick', log2(ticks)); % Working on log scale
+    if clog
+        set(gca, 'YTick', log2(ticks)); % Working on log scale
+    else
+        set(gca, 'YTick', ticks);
+    end
     set(gca, 'YTickLabel', opt.ticklabels);
 
     % Y tick stuff

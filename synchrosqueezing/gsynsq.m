@@ -202,7 +202,7 @@ hs.padtype = 'symmetric';
 % Number of voices
 hs.nv = 32;
 % Wavelet type and other options
-hs.opt = struct('disp', 1, 'bd', 1, 'eps', sqrt(eps), 'type', 'morlet');
+hs.opt = struct('disp', 1, 'bd', 1, 'gamma', sqrt(eps), 'type', 'morlet');
 
 % Placeholders for the input data
 hs.data = [];
@@ -384,9 +384,9 @@ end
 prompt = {'Wavelet [morlet,bump,hhhat,...]', ...
           'Number of Voices (nv)', ...
           'Pad type [symmetric, circular, replicate]', ...
-          'Epsilon (\epsilon)'};
+          'Gamma (\gamma)'};
 name = 'Synchrosqueezing Analysis Parameters';
-answers = {hs.opt.type, num2str(hs.nv), hs.padtype, num2str(hs.opt.eps)};
+answers = {hs.opt.type, num2str(hs.nv), hs.padtype, num2str(hs.opt.gamma)};
 idata = inputdlg(prompt, name, 1, answers, struct('WindowStyle', 'normal'));
 if isempty(idata)
     return
@@ -395,12 +395,13 @@ end
 hs.opt.type = idata{1};
 hs.nv = str2num(idata{2});
 hs.padtype = idata{3};
-hs.opt.eps = str2num(idata{4});
+hs.opt.gamma = str2num(idata{4});
 
 [hs.data.Tx, hs.data.fs, hs.data.Wx, hs.data.as] = ...
     synsq_cwt_fw(hs.data.t, hs.data.x, hs.nv, hs.opt);
 
 axes(hs.axesTx);
+cla(hs.axesTx);
 tplot(hs.data.Tx, hs.data.t, hs.data.fs, hs.opt);
 set(hs.axesTx, 'Visible', 'on');
 grid(hs.axesTx, 'on');

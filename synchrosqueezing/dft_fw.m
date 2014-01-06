@@ -25,12 +25,11 @@
 function [Fx, fs] = dft_fw(t, x, opt)
 if nargin<3, opt = struct(); end
 
-n = length(x);
-[nup,n1,n2] = p2up(length(x));
 if ~isfield(opt, 'padtype'), opt.padtype = 'symmetric'; end
-xl = padarray(x(:), n1, opt.padtype, 'pre');
-xr = padarray(x(:), n2, opt.padtype, 'post');
-xpad = [xl(1:n1); x(:); xr(end-n2+1:end)];
+
+n = length(x);
+[xpad,nup] = padsignal(x, opt.padtype);
+
 Fxpad = fft(xpad);
 Fx = 1/(pi*nup)*Fxpad(2:nup/2);
 

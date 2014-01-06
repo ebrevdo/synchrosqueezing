@@ -25,6 +25,10 @@ function hc = plot_ext_curves_cmp(t, xs, Tx, fs, Cs, Es, opt, clwin)
 if nargin<8, clwin = 4; end
 if nargin<7, opt = struct(); end
 
+if ~isfield(opt, 'draw_contours')
+  opt.draw_contours = true;
+end
+
 if ~isfield(opt, 'markers')
   opt.markers = {'+','o','*','x','s','d','^','v','>','<','p','h' };
 end
@@ -43,7 +47,7 @@ xrs = curve_ext_recon(Tx, fs, Cs, opt, clwin);
 hca = gcf;
 
 % Plot everything
-if isfield(opt, 'hc');
+if isfield(opt, 'hc')
     hc(1) = opt.hc(1);
     subplot(hc(1));
 else
@@ -60,8 +64,10 @@ title('Extracted Contour(s)');
 
 % Plot the contours
 hold on;
-lcs = plot_markers(t, log2(fs(Cs)), opt.markers, '--k', 'LineWidth', 0.5);
-legend(lcs, cellfun(@(j) {sprintf('k=%g', j)}, num2cell(1:Nc)));
+if opt.draw_contours
+  lcs = plot_markers(t, log2(fs(Cs)), opt.markers, '--k', 'LineWidth', 0.5);
+  legend(lcs, cellfun(@(j) {sprintf('k=%g', j)}, num2cell(1:Nc)));
+end
 
 for ci=1:Nc
     if isfield(opt, 'hc'),
@@ -75,9 +81,13 @@ for ci=1:Nc
     % Find most correlated x of xs to this extracted contour
     [Mc,Mci] = max(corr(xrs(:,ci), xs));
     hold on;
-    plot(t, xs(:,Mci), 'k', 'LineWidth', 1.5);
-    plot_markers(t, xrs(:,ci), {opt.markers{1+mod(ci-1,length(opt.markers))}}, ...
-                 '--k', 'LineWidth', 1);
+    plot(t, xs(:,Mci), '--k', 'LineWidth', 0.5);
+    if opt.draw_contours
+        plot_markers(t, xrs(:,ci), {opt.markers{1+mod(ci-1,length(opt.markers))}}, ...
+                     'k', 'LineWidth', 1);
+    else
+        plot(t, xrs(:,ci), 'k', 'LineWidth', 1);
+    end
     axis tight;
     xlabel('t');
     ylabel(sprintf('x_%g(t)',ci));
