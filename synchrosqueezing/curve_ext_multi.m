@@ -6,11 +6,9 @@
 % representation.  Curve extraction is then again performed on
 % the remaining representaton.
 %
-% For more details, see help curve_ext and Sec. IIID of [1].
+% For more details, see help curve_ext.
 %
-% 1. E. Brevdo, N.S. Fučkar, G. Thakur, and H-T. Wu, "The
-% Synchrosqueezing algorithm: a robust analysis tool for signals
-% with time-varying spectrum," 2011.
+%
 %
 % Input:
 %  Tx, fs, lambda - same as input to curve_ext() (lambda default = 1e3)

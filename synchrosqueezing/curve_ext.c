@@ -81,9 +81,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
   for (i=0;i<N;++i) {
     for (j=0;j<na;++j) {
       if (Txr != NULL)
-	Energy[i*na+j] = Txr[i*na+j]*Txr[i*na+j];
+  Energy[i*na+j] = Txr[i*na+j]*Txr[i*na+j];
       if (Txi != NULL)
-	Energy[i*na+j] += Txi[i*na+j]*Txi[i*na+j];
+  Energy[i*na+j] += Txi[i*na+j]*Txi[i*na+j];
 
       sum += Energy[i*na+j];
     }
@@ -109,7 +109,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     for (j=0;j<na;++j){
       for (k=0;k<na;++k)
         if (FVal[i*na+j] > FVal[(i-1)*na+k]+lambda*fdist(fs, j, k))
-	  FVal[i*na+j] = FVal[(i-1)*na+k]+lambda*fdist(fs, j, k);
+    FVal[i*na+j] = FVal[(i-1)*na+k]+lambda*fdist(fs, j, k);
 
       FVal[i*na+j] += Energy[i*na+j];
     }

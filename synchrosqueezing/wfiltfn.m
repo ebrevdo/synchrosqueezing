@@ -28,19 +28,35 @@
 %
 %---------------------------------------------------------------------------------
 %    Synchrosqueezing Toolbox
-%    Authors: Eugene Brevdo (http://www.math.princeton.edu/~ebrevdo/)
+%    Authors: Eugene Brevdo, Gaurav Thakur
 %---------------------------------------------------------------------------------
-function psihfn = wfiltfn(type, opt)
+function psihfn = wfiltfn(type, opt, derivative)
+  if nargin<3, derivative=false; end
     switch type
+    %bump window should be optimal for most purposes
+      case 'bump',
+        if ~isfield(opt,'mu'), mu = 1; else mu = opt.mu; end
+        if ~isfield(opt,'s'), s = 1; else s = opt.s; end
+        if ~isfield(opt,'om'), om = 0; else om = opt.om; end
+    psihfnorig = @(w) (abs(w)<0.999).*exp(-1./(1-(w.*(abs(w)<0.999)).^2))/0.443993816053287;
+    if ~(derivative)
+      psihfn = @(w) exp(2*pi*i*om*w).*psihfnorig((w-mu)/s)/s;
+    else  
+      psihfn = @(w) exp(2*pi*i*om*w).*psihfnorig((w-mu)/s)/s .* (2*pi*i*om - 2*((w-mu)/s^2)./(1-((w-mu)/s).^2).^2);
+    end
       case 'gauss',
         % Similar to morlet, but can control bandwidth
         % can be used with synsq for large enough mu/s ratio
-        if ~isfield(opt,'s'), s = 1/6; else s = opt.s; end
-        if ~isfield(opt,'mu'), mu = 2; else mu = opt.mu; end
-        psihfn = @(w) 2.^(-(w-mu).^2/(2*s^2));
+        if ~isfield(opt,'s'), s = 1/pi; else s = opt.s; end
+        if ~isfield(opt,'mu'), mu = 0; else mu = opt.mu; end
+    if ~(derivative)
+      psihfn = @(w) (2*pi*s^2)^(-1/2)*exp(-(w-mu).^2/(2*s^2));
+    else
+      psihfn = @(w) (2*pi*s^2)^(-1/2).*exp(-(w-mu).^2/(2*s^2)).*-(w-mu)/s^2;
+    end
       case 'mhat', % mexican hat
         if ~isfield(opt,'s'), s = 1; else s = opt.s; end
-	psihfn = @(w) -sqrt(8)*s^(5/2)*pi^(1/4)/sqrt(3)*w.^2.*exp(-s^2*w.^2/2);
+    psihfn = @(w) -sqrt(8)*s^(5/2)*pi^(1/4)/sqrt(3)*w.^2.*exp(-s^2*w.^2/2);
       case 'cmhat', 
         % complex mexican hat: hilbert analytic function of sombrero
         % can be used with synsq
@@ -70,11 +86,6 @@ function psihfn = wfiltfn(type, opt)
         if ~isfield(opt,'mu'), mu = 5; else mu = opt.mu; end
         psihfnshift = @(w)2/sqrt(5)*pi^(-1/4)*(w.*(1+w).*exp(-1/2*w.^2)) .* (1+sign(w));
         psihfn = @(w) psihfnshift(w-mu);
-      case 'bump',
-        if ~isfield(opt,'mu'), mu = 5; else mu = opt.mu; end
-        if ~isfield(opt,'s'), s = 1; else s = opt.s; end
-        psihfnorig = @(w)exp(-1./(1-w.^2)) .* (abs(w)<1);
-        psihfn = @(w) psihfnorig((w-mu)/s);
       otherwise
         error('Unknown wavelet type: %s', type);
     end % switch type

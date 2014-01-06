@@ -37,7 +37,7 @@ if nargin<3
 
   % Which dimension are we calculating quantiles along?
   if isvector(X)
-    [tmpvar,mdim] = max(sX);
+    [~,mdim] = max(sX);
     dim = mdim;
   else
     dim = 1;

@@ -1,6 +1,6 @@
-% function x = synsq_cwt_iw(Tx, fs, opt)
+% function x = synsq_stft_fw(Tx, fs, opt)
 %
-% Inverse Synchrosqueezing transform of Tx with associated
+% Inverse STFT Synchrosqueezing transform of Tx with associated
 % frequencies in fs.  This implements Eq. 5 of [1].
 %
 % 1. G. Thakur, E. Brevdo, N.-S. Fučkar, and H.-T. Wu,
@@ -27,13 +27,18 @@
 %    Synchrosqueezing Toolbox
 %    Authors: Eugene Brevdo, Gaurav Thakur
 %---------------------------------------------------------------------------------
-function x = synsq_cwt_iw(Tx, fs, opt, t)
+function x = synsq_cwt_iw(Tx, fs, opt)
     if nargin<3, opt = struct(); end
-    if ~isfield(opt, 'type'), opt.type = 'morlet'; end
+  
+  %compute L2 norm of window to normalize inverse STFT with
+  windowfunc = wfiltfn(opt.type,opt,false);
+  C = quadgk(@(x) windowfunc(x).^2, -Inf, Inf);
+  %quadgk is a bit inaccurate with the bump function, this scales it correctly
+  if strcmpi(opt.type,'bump')
+    C=C*0.8675;
+  end
 
-    % Find the admissibility coefficient Cpsi
-    Css = synsq_adm(opt.type, opt);
-
-    % Due to linear discretization of integral in log(fs), this becomes a simple normalized sum.
-  x = 1/Css*sum(real(Tx),1);
+    % Integration over all frequencies recovers original signal
+  % factor of 2 is because real parts contain half the energy
+    x = 2/(pi*C)*sum(real(Tx),1);
 end

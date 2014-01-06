@@ -1,12 +1,11 @@
 % function [h,opt] = tplot(Tx, t, fs, opt)
 % function [h,opt] = tplot(Wx, t, as, opt)
 %
-% Plots the 2D magnitude of either the synchrosqueezing or
-% wavelet transform of signal x via tplot.  Allows for restrictions
+% Plots the 2D magnitude of a time-frequency representation via tplot. Allows for restrictions
 % to particular frequency or scale intervals.  Plots boundaries
 % past which the transform is no longer accurate.  Scales the
 % signal.  Draws pretty ticks on the y-axis.
-% 
+%
 % Input
 %   Tx, t, fs (e.g. output of synsq_cwt_fw, or properly chosen slices)
 %     Use opt.style = 'freq'.
@@ -26,7 +25,7 @@
 %   Mlog: plot logarithm of absolute values (default = 0)
 %   flim: 2-dim array with minimum/maximum frequency plotting
 %         constraints (default: [-Inf Inf])
-%        
+%
 % Output:
 %   hs - 2-dim vector of handles to the tplot, and the power plot
 %    hs(1) - handle to the tplot axis
@@ -38,13 +37,18 @@
 %---------------------------------------------------------------------------------
 function [h,opt]=tplot(Tx, t, fs, opt)
     if nargin<4, opt = struct(); end
-    if ~isfield(opt, 'nticks'), opt.nticks = 6; end
+    if ~isfield(opt, 'nticks'), opt.nticks = [8,6]; end
     if ~isfield(opt, 'style'), opt.style = 'freq'; end % or 'scale'
-    if ~isfield(opt, 'bd'), opt.bd = 1; end
-    if ~isfield(opt, 'ticklabels'), opt.ticklabels = {}; end
+    if ~isfield(opt, 'bd'), opt.bd = 0; end
+    if ~isfield(opt, 'xticklabels'), opt.xticklabels = {}; end
+    if ~isfield(opt, 'yticklabels'), opt.yticklabels = {}; end
+    if ~isfield(opt, 'minorticks'), opt.minorticks = false; end
     if ~isfield(opt, 'Mquant'), opt.Mquant = .995; end
     if ~isfield(opt, 'Mlog'), opt.Mlog = 0; end
     if ~isfield(opt, 'flim'), opt.flim = [-Inf Inf]; end
+    if ~isfield(opt, 'colorbar'), opt.colorbar = false; end
+    %which complex component to use; needed for backward compatibility
+    if ~isfield(opt, 'complex'), opt.complex = 'abs'; end
 
     % % Find frequency axis limits
 
@@ -57,20 +61,25 @@ function [h,opt]=tplot(Tx, t, fs, opt)
         flimi(1) = find(fs >= flim(2), 1, 'last');
         flimi(2) = find(fs <= flim(1), 1, 'first');
     end
-       
+
     % Restrict ourselves to this region
     fs = fs(flimi(1):flimi(2));
     Tx = Tx(flimi(1):flimi(2), :);
 
     lfs = log2(fs);
 
+    if strcmpi(opt.complex,'abs')
+        aTx = abs(Tx);
+    elseif strcmpi(opt.complex,'real')
+        aTx = real(Tx);
+    elseif strcmpi(opt.complex,'imag')
+        aTx = imag(Tx);
+    end
     if (opt.Mlog)
-      aTx = log(1+abs(Tx));
-    else
-      aTx = abs(Tx);
+        aTx = log(1+aTx);
     end
     clear Tx;
-    
+
     % Check if on a logarithmic freq scale
     clog = mean(abs(diff(lfs, 2))) < eps*100;
     opt.clog = clog;
@@ -80,7 +89,7 @@ function [h,opt]=tplot(Tx, t, fs, opt)
         imagesc(t, fs, aTx);
     end
     h = gcf;
-    
+
     if (fs(2)>fs(1))
         set(gca, 'YDir', 'normal');
     else
@@ -92,30 +101,41 @@ function [h,opt]=tplot(Tx, t, fs, opt)
     caold = caxis();
     caxis([caold(1) cM]);
 
-    colormap(gca, 1-hot(512));
+    colormap(gca, 1-hot(256));
 
-    if isempty(opt.ticklabels)
+    if isempty(opt.xticklabels)
+        tticks = linspace(t(1), t(end), opt.nticks(1));
+        %            opt.xticklabels = arrayfun(@(x){sprintf('%.5f',x)}, tticks);
+        opt.xticklabels = arrayfun(@(x){num2str(x)}, tticks);
+    end
+    if isempty(opt.yticklabels)
         if clog
-            tticks = linspace(min(lfs),max(lfs), opt.nticks);
-            opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, 2.^tticks);
+            tticks = linspace(min(lfs),max(lfs), opt.nticks(2));
+            opt.yticklabels = arrayfun(@(x){sprintf('%.2g',x)}, 2.^tticks);
         else
-            tticks = linspace(min(fs), max(fs), opt.nticks);
-            opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, tticks);
+            tticks = linspace(min(fs), max(fs), opt.nticks(2));
+            opt.yticklabels = arrayfun(@(x){sprintf('%.2g',x)}, tticks);
         end
     end
 
     % Set ticks according to tick labels
-    ticks = cellfun(@(x)str2num(x), opt.ticklabels);
+    xticks = cellfun(@(x)str2num(x), opt.xticklabels);
+    yticks = cellfun(@(x)str2num(x), opt.yticklabels);
+    set(gca, 'XTick', xticks);
+    set(gca, 'XTickLabel', opt.xticklabels);
     if clog
-        set(gca, 'YTick', log2(ticks)); % Working on log scale
+        set(gca, 'YTick', log2(yticks)); % Working on log scale
     else
-        set(gca, 'YTick', ticks);
+        set(gca, 'YTick', yticks);
     end
-    set(gca, 'YTickLabel', opt.ticklabels);
+    set(gca, 'YTickLabel', opt.yticklabels);
 
     % Y tick stuff
-    set(gca, 'YTickMode', 'manual');
-    set(gca, 'YMinorTick', 'on');
+    %    set(gca, 'YTickMode', 'manual');
+    if (opt.minorticks)
+        set(gca, 'YMinorTick', 'on');
+        set(gca, 'XMinorTick', 'on');
+    end
     axis tight;
 
     % Plot boundary?
@@ -142,47 +162,47 @@ function [h,opt]=tplot(Tx, t, fs, opt)
                        'Color', 'k', 'LineStyle', ':');
         linepatch_draw(t(end), t(Rbdi), log2(fsbd), ...
                        'Color', 'k', 'LineStyle', ':');
-        %set([Lp Rp], 'FaceAlpha', .25);
-        %set([Lp Rp], 'EdgeColor', 'none');
+    %set([Lp Rp], 'FaceAlpha', .25);
+    %set([Lp Rp], 'EdgeColor', 'none');
 
-        % Correct for a bug in OpenGL rendering with transparency
-        % over an image.  Draw a line at the bottom.
-        %bL=line([t(1) t(end)], [log2(fs(1)) log2(fs(1))]);
-        %set(bL, 'Color', 'k');
+    % Correct for a bug in OpenGL rendering with transparency
+    % over an image.  Draw a line at the bottom.
+    %bL=line([t(1) t(end)], [log2(fs(1)) log2(fs(1))]);
+    %set(bL, 'Color', 'k');
 
-        %hold on;
-        %plot(t(Lbdi), log2(fs), 'k');
-        %plot(t(Rbdi), log2(fs), 'k');
-        %hold off;
+    %hold on;
+    %plot(t(Lbdi), log2(fs), 'k');
+    %plot(t(Rbdi), log2(fs), 'k');
+    %hold off;
     end
 
-    
+    if (opt.colorbar) colorbar('location','north'); end
 end
 
 function linepatch_draw(xbd,x,y,varargin)
-  % Lines
-  nx = length(x);
-  x = x(:);
-  y = y(:);
+    % Lines
+    nx = length(x);
+    x = x(:);
+    y = y(:);
 
-  % First add contours
-  linesx = zeros(nx, 2);
-  linesy = zeros(nx, 2);
-  for i=1:nx
-    j = 1+mod(i,nx);
-    linesx(i,:) = [x(i) x(j)];
-    linesy(i,:) = [y(i) y(j)];
-  end
+    % First add contours
+    linesx = zeros(nx, 2);
+    linesy = zeros(nx, 2);
+    for i=1:nx
+        j = 1+mod(i,nx);
+        linesx(i,:) = [x(i) x(j)];
+        linesy(i,:) = [y(i) y(j)];
+    end
 
-  % How many horizontal lines do we want total?
-  ntotal = 80;
-  nsub = max(1, round(nx/ntotal));
+    % How many horizontal lines do we want total?
+    ntotal = 80;
+    nsub = max(1, round(nx/ntotal));
 
-  xsub = x(1:nsub:end);
-  ysub = y(1:nsub:end);
-  linesx = [linesx; xbd*ones(length(xsub),1) xsub];
-  linesy = [linesy; ysub ysub];
+    xsub = x(1:nsub:end);
+    ysub = y(1:nsub:end);
+    linesx = [linesx; xbd*ones(length(xsub),1) xsub];
+    linesy = [linesy; ysub ysub];
 
-  hold on;
-  plot(linesx', linesy', varargin{:});
+    hold on;
+    plot(linesx', linesy', varargin{:});
 end
