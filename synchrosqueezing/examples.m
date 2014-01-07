@@ -25,7 +25,7 @@ figure(); tplot(Wx, t, as); colorbar; title('CWT');
 %{
 [Sx,fs,dSx] = stft_fw(x, dt, STFTopt);
 xNew = stft_iw(Sx, fs, STFTopt).';
-figure(); tplot(Sx, t, fs); colorbar; title('STFT, 256 samples');
+figure(); tplot(Sx, t, fs); colorbar; title('STFT');
 %figure(); plot(t,[x,xNew]);
 %}
 
