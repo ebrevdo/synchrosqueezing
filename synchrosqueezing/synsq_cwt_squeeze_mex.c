@@ -14,6 +14,14 @@
 #include "mex.h"
 #include "matrix.h"
 
+#if !defined(max)
+#define max(A,B) (A>B ? A:B)
+#endif
+ 
+#if !defined(min)
+#define min(A,B) (A<B ? A:B)
+#endif
+
 /**
    Tx = synsq_cwt_squeeze_mex(Wx, w, as, fs, dfs, lfm, lfM);
 **/
@@ -28,11 +36,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
             if (mxIsFinite(w(ai, b)) && (w(ai,b)>0))
                 % Find w_l nearest to w(a_i,b)
                 %  2.^(lfm + k*(lfM-lfm)/na) ~= w(a_i,b)
-                k = 1 + floor(na/(lfM-lfm)*(log2(w(ai,b))-lfm));
-                if mxIsFinite(k) && k>0 && k<=na
-                    % Tx(k,b) = Tx(k, b) + fs(k)/dfs(k) * Wx(ai, b) * as(ai)^(-1/2);
-                    Tx(k,b) = Tx(k, b) + Wx(ai, b) * as(ai)^(-1/2);
-                end
+                k = min(max(1 + floor(na/(lfM-lfm)*(log2(w(ai,b))-lfm)),0),na-1);
+                Tx(k,b) = Tx(k, b) + Wx(ai, b) * as(ai)^(-1/2);
             end
         end % for ai...
      end % for b
@@ -91,10 +96,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	continue;
 
       /* Round to nearest integer */
-      k = (size_t)(floor(0.5f + ((double)(na-1))/(lfM-lfm)*(log2(wab[ai])-lfm)));
+      k = (size_t)min(max((floor(0.5f + ((double)(na-1))/(lfM-lfm)*(log2(wab[ai])-lfm))),0),na-1);
       /* k = (size_t)(round(((double)(na-1))/(lfM-lfm)*(log2(wab[ai])-lfm))); */
       
-      if (mxIsFinite(k) && k>=0 && k<na) {
+      if (mxIsFinite(k)) {
 	Txbr[k] = Txbr[k] + (Wxbr[ai] * asrtinv[ai] * dfsinv[k]);
 	Txbi[k] = Txbi[k] + (Wxbi[ai] * asrtinv[ai] * dfsinv[k]);
 	/**

@@ -1,5 +1,3 @@
-% function [Wx,as,dWx] = cwt_fw(x, type, nv, dt, opt)
-%
 % Forward continuous wavelet transform, discretized, as described
 % in Sec. 4.3.3 of [1] and Sec. IIIA of [2].  This algorithm uses
 % the FFT and samples the wavelet atoms in the fourier domain.
@@ -10,9 +8,9 @@
 %
 % 1. Mallat, S., Wavelet Tour of Signal Processing 3rd ed.
 %
-% 2. E. Brevdo, N.S. Fučkar, G. Thakur, and H-T. Wu, "The
-% Synchrosqueezing algorithm: a robust analysis tool for signals
-% with time-varying spectrum," 2011.
+% 2. G. Thakur, E. Brevdo, N.-S. Fučkar, and H.-T. Wu,
+% "The Synchrosqueezing algorithm for time-varying spectral analysis: robustness
+%  properties and new paleoclimate applications," Signal Processing, 93:1079-1094, 2013.
 % 
 % Inputs:
 %     x: input signal vector, length n (need not be dyadic length)
@@ -23,7 +21,7 @@
 %    opt.padtype: type of padding, options: 'symmetric',
 %                 'replicate', 'circular' (default = 'symmetric')
 %    opt.rpadded: return padded Wx and dWx?  (default = 0)
-%    opt.s, opt,mu, etc: wavelet options (see help wfiltfn)
+%    opt.type, opt.s, opt,mu, etc: wavelet options (see help wfiltfn)
 %
 % Outputs:
 %    Wx: [na x n] size matrix (rows = scales, cols = times)
@@ -31,12 +29,13 @@
 %    as: na length vector containing the associated scales
 %   dWx (calculated if requested): [na x n] size matrix containing
 %       samples of the time-derivatives of the CWT of x.
+%	xMean: mean of padded x
 %
 %---------------------------------------------------------------------------------
 %    Synchrosqueezing Toolbox
-%    Authors: Eugene Brevdo (http://www.math.princeton.edu/~ebrevdo/)
+%    Authors: Eugene Brevdo, Gaurav Thakur
 %---------------------------------------------------------------------------------
-function [Wx,as,dWx] = cwt_fw(x, type, nv, dt, opt)
+function [Wx,as,dWx,xMean] = cwt_fw(x, type, nv, dt, opt)
     if nargin<5, opt = struct(); end
     if nargin<4, dt = 1; end
 
@@ -56,6 +55,11 @@ function [Wx,as,dWx] = cwt_fw(x, type, nv, dt, opt)
 
     % Pad x first
     [x,N,n1,n2] = padsignal(x, opt.padtype);
+%	x([1:n1,n1+n+1:N])=0;
+	
+	%output mean of padded x
+	xMean = mean(x);
+	x = x-xMean;
 
     % Choosing more than this means the wavelet window becomes too short
     noct = log2(N)-1;
@@ -68,36 +72,47 @@ function [Wx,as,dWx] = cwt_fw(x, type, nv, dt, opt)
     as = 2^(1/nv) .^ (1:1:na);
     
     Wx = zeros(na, N);
-    
-    if dout,
-        dWx = Wx;
-        opt.dt = dt;
-    end
+    dWx = Wx;
+	opt.dt = dt;
     
     x = x(:).';
     xh = fft(x);
     
     % for each octave
+	% reworked this part to not use wfilth, which slows things down a lot due to
+	% branching and temp objects; see that function for more comments
+	k = 0:(N-1);
+    xi = zeros(1, N);
+    xi(1:N/2+1) = 2*pi/N*[0:N/2];
+    xi(N/2+2:end) = 2*pi/N*[-N/2+1:-1];
+    psihfn = wfiltfn(type, opt);
+
     for ai = 1:na
         a = as(ai);
-        
-        if dout,
-            [psih, dpsih] = wfilth(type, N, a, opt);
-            dxcpsi = ifftshift(ifft(dpsih .* xh));
-            dWx(ai, :) = dxcpsi;
-        else
-            psih = wfilth(type, N, a, opt);
-        end
+		psih = psihfn(a*xi) * sqrt(a) / sqrt(2*pi) .* (-1).^k;
+		dpsih = (i*xi/opt.dt) .* psih;
+
         xcpsi = ifftshift(ifft(psih .* xh));
         Wx(ai, :) = xcpsi;
+		dxcpsi = ifftshift(ifft(dpsih .* xh));
+		dWx(ai, :) = dxcpsi;
+%        if dout,
+%            [psih, dpsih] = wfilth(type, N, a, opt);
+%            dxcpsi = ifftshift(ifft(dpsih .* xh));
+%            dWx(ai, :) = dxcpsi;
+%        else
+%            psih = wfilth(type, N, a, opt);
+%        end
     end
-
+	
+%	Wx = Wx + xMean*repmat((as.^1/2).',[1,N]);
+	
     % Shorten W to proper size (remove padding)
     if (~opt.rpadded)
         Wx = Wx(:, n1+1:n1+n);
-        if dout,
+ %       if dout,
             dWx = dWx(:, n1+1:n1+n);
-        end
+ %       end
     end
 
     % Output a for graphing purposes, scale by dt

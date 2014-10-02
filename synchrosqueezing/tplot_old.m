@@ -1,7 +1,8 @@
 % function [h,opt] = tplot(Tx, t, fs, opt)
 % function [h,opt] = tplot(Wx, t, as, opt)
 %
-% Plots the 2D magnitude of a time-frequency representation via tplot. Allows for restrictions
+% Plots the 2D magnitude of either the synchrosqueezing or
+% wavelet transform of signal x via tplot.  Allows for restrictions
 % to particular frequency or scale intervals.  Plots boundaries
 % past which the transform is no longer accurate.  Scales the
 % signal.  Draws pretty ticks on the y-axis.
@@ -37,18 +38,13 @@
 %---------------------------------------------------------------------------------
 function [h,opt]=tplot(Tx, t, fs, opt)
     if nargin<4, opt = struct(); end
-    if ~isfield(opt, 'nticks'), opt.nticks = [8,6]; end
+    if ~isfield(opt, 'nticks'), opt.nticks = 6; end
     if ~isfield(opt, 'style'), opt.style = 'freq'; end % or 'scale'
-    if ~isfield(opt, 'bd'), opt.bd = 0; end
-    if ~isfield(opt, 'xticklabels'), opt.xticklabels = {}; end
-    if ~isfield(opt, 'yticklabels'), opt.yticklabels = {}; end
-    if ~isfield(opt, 'minorticks'), opt.minorticks = false; end
+    if ~isfield(opt, 'bd'), opt.bd = 1; end
+    if ~isfield(opt, 'ticklabels'), opt.ticklabels = {}; end
     if ~isfield(opt, 'Mquant'), opt.Mquant = .995; end
     if ~isfield(opt, 'Mlog'), opt.Mlog = 0; end
     if ~isfield(opt, 'flim'), opt.flim = [-Inf Inf]; end
-	if ~isfield(opt, 'colorbar'), opt.colorbar = false; end
-	%which complex component to use; needed for backward compatibility
-	if ~isfield(opt, 'complex'), opt.complex = 'abs'; end
 
     % % Find frequency axis limits
 
@@ -68,15 +64,10 @@ function [h,opt]=tplot(Tx, t, fs, opt)
 
     lfs = log2(fs);
 
-	if strcmpi(opt.complex,'abs')
-		aTx = abs(Tx);
-	elseif strcmpi(opt.complex,'real')
-		aTx = real(Tx);	
-	elseif strcmpi(opt.complex,'imag')
-		aTx = imag(Tx);
-	end
     if (opt.Mlog)
-      aTx = log(1+aTx);
+      aTx = log(1+abs(Tx));
+    else
+      aTx = abs(Tx);
     end
     clear Tx;
     
@@ -103,39 +94,28 @@ function [h,opt]=tplot(Tx, t, fs, opt)
 
     colormap(gca, 1-hot(256));
 
-	if isempty(opt.xticklabels)
-            tticks = linspace(t(1), t(end), opt.nticks(1));
-%            opt.xticklabels = arrayfun(@(x){sprintf('%.5f',x)}, tticks);
-			opt.xticklabels = arrayfun(@(x){num2str(x)}, tticks);
-	end
-    if isempty(opt.yticklabels)
+    if isempty(opt.ticklabels)
         if clog
-            tticks = linspace(min(lfs),max(lfs), opt.nticks(2));
-            opt.yticklabels = arrayfun(@(x){sprintf('%.2g',x)}, 2.^tticks);
+            tticks = linspace(min(lfs),max(lfs), opt.nticks);
+            opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, 2.^tticks);
         else
-            tticks = linspace(min(fs), max(fs), opt.nticks(2));
-            opt.yticklabels = arrayfun(@(x){sprintf('%.2g',x)}, tticks);
+            tticks = linspace(min(fs), max(fs), opt.nticks);
+            opt.ticklabels = arrayfun(@(x){sprintf('%.2g',x)}, tticks);
         end
     end
 
     % Set ticks according to tick labels
-	xticks = cellfun(@(x)str2num(x), opt.xticklabels);
-    yticks = cellfun(@(x)str2num(x), opt.yticklabels);
-	set(gca, 'XTick', xticks);
-	set(gca, 'XTickLabel', opt.xticklabels);
+    ticks = cellfun(@(x)str2num(x), opt.ticklabels);
     if clog
-        set(gca, 'YTick', log2(yticks)); % Working on log scale
+        set(gca, 'YTick', log2(ticks)); % Working on log scale
     else
-        set(gca, 'YTick', yticks);
+        set(gca, 'YTick', ticks);
     end
-    set(gca, 'YTickLabel', opt.yticklabels);
+    set(gca, 'YTickLabel', opt.ticklabels);
 
     % Y tick stuff
-%    set(gca, 'YTickMode', 'manual');
-	if (opt.minorticks)
-		set(gca, 'YMinorTick', 'on');
-		set(gca, 'XMinorTick', 'on');
-	end
+    set(gca, 'YTickMode', 'manual');
+    set(gca, 'YMinorTick', 'on');
     axis tight;
 
     % Plot boundary?
@@ -176,7 +156,6 @@ function [h,opt]=tplot(Tx, t, fs, opt)
         %hold off;
     end
 
-	if (opt.colorbar) colorbar('location','north'); end
     
 end
 

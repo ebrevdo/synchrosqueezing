@@ -1,8 +1,8 @@
-Synchrosqueezing Toolbox v1.1
-Authors: Eugene Brevdo (http://www.math.princeton.edu/~ebrevdo/)
+﻿Synchrosqueezing Toolbox v1.21
+Authors: Eugene Brevdo, Gaurav Thakur
 
-If you use this code in your research, please include the citations to papers
-[2,3] below.
+If you use this code in your research, please include the citations to the 
+papers below.
 
 Acknowledgements
 ------------------
@@ -11,22 +11,22 @@ Hau-tieng Wu and Ingrid Daubechies were instrumental in the creation
 of the underlying ideas behind the Synchrosqueezing transform code in
 this toolbox.
 
-The file curve_ext.c was authored by Jianfeng Lu (now at NYU CIMS).
+The file curve_ext.c was authored by Jianfeng Lu (now at Duke).
 
 
 Introduction
 --------------
 
 This toolbox implements several time-frequency and time-scale analysis
-methods, as described in [1,2,3].  These include:
+methods, as described in [1,2,3,4].  These include:
 
-1. Forward and inverse Discrete Wavelet Transform (a discretization
-   of the continuous wavelet transform, so we will call it cwt).
-2. Forward and inverse Wavelet-based Synchrosqueezing (synsq_cwt).
+1. Forward and inverse discretized Continuous Wavelet Transform (CWT).
+2. Forward and inverse CWT-based Synchrosqueezing (synsq_cwt)
+   and STFT-based Synchrosqueezing (synsq_stft).
 3. Various plotting and curve extraction utilities to go with
-   cwt and synsq_cwt.
+   the above functions.
 4. A GUI (the Synchrosqueezing GUI) for analysis, filtering,
-   denoising, and signal extraction.  This allows the simple, fast,
+   denoising, and signal extraction.  This allows for simple, fast,
    initial analysis via Synchrosqueezing.
 
 Installation
@@ -58,18 +58,18 @@ import time/signal vectors from your workspace, use file->import
 (control+E).  This GUI calls, and provides examples for using, many of the
 functions described below.
 
-cwt_fw, cwt_iw: wavelet forward/inverse transform
+cwt_fw, cwt_iw: continuous wavelet forward/inverse transform
 
-dft_fw: discrete fourier series
+synsq_cwt_fw, synsq_cwt_iw: CWT synchrosqueezing
+  forward/inverse transform.
 
-synsq_cwt_fw, synsq_cwt_iw: wavelet-based synchrosqueezing
+synsq_stft_fw, synsq_stft_iw: STFT synchrosqueezing
   forward/inverse transform.
 
 est_riskshrink_thresh: RiskShrink threshold estimator
   for denoising signals.
 
-tplot, tplot_power: plotting of output of cwt and synsq_cwt
-  transforms.
+tplot, tplot_power: plotting of output of cwt_fw, stft_fw, synsq_cwt, synsq_stft
 
 curve_ext_*: curve extraction from output of synsq_cwt
 plot_ext_curves*: associated plotting functions
@@ -77,13 +77,20 @@ plot_ext_curves*: associated plotting functions
 synsq_filter_pass: frequency-region filtering in synchrosqueezing
 domain.
 
+examples: several quick example scripts for the above functions
+
 References
 -------------
 1. Mallat, S., Wavelet Tour of Signal Processing 3rd ed.
 
-2. E. Brevdo, N.S. Fučkar, G. Thakur, and H-T. Wu, "The
-Synchrosqueezing algorithm: a robust analysis tool for signals
-with time-varying spectrum," 2011.
+2. I. Daubechies, J. Lu, H.T. Wu, "Synchrosqueezed Wavelet Transforms: an
+   empricial mode decomposition-like tool", Applied and Computational Harmonic Analysis
+ 30(2):243-261, 2011.
 
-3. I. Daubechies, J. Lu, H.T. Wu, "Synchrosqueezed Wavelet Transforms: a
-tool for empirical mode decomposition", 2010.
+3. G. Thakur, E. Brevdo, N.-S. Fučkar, and H.-T. Wu,
+ "The Synchrosqueezing algorithm for time-varying spectral analysis: robustness
+  properties and new paleoclimate applications", Signal Processing 93:1079-1094, 2013.
+
+4. G. Thakur and H.-T. Wu,
+ "Synchrosqueezing-based Recovery of Instantaneous Frequency from Nonuniform Samples",
+ SIAM Journal on Mathematical Analysis, 43(5):2078-2095, 2011.

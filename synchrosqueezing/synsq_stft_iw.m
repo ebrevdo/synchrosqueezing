@@ -1,6 +1,6 @@
-% function x = synsq_cwt_iw(Tx, fs, opt, Cs, freqband)
+% function x = synsq_stft_fw(Tx, fs, opt, Cs, freqband)
 %
-% Inverse Synchrosqueezing transform of Tx with associated
+% Inverse STFT Synchrosqueezing transform of Tx with associated
 % frequencies in fs and curve bands in time-frequency plane
 % specified by Cs and freqband.  This implements Eq. 5 of [1].
 %
@@ -30,14 +30,18 @@
 %    Synchrosqueezing Toolbox
 %    Authors: Eugene Brevdo, Gaurav Thakur
 %---------------------------------------------------------------------------------
-function x = synsq_cwt_iw(Tx, fs, opt, Cs, freqband)
+function x = synsq_stft_iw(Tx, fs, opt, Cs, freqband)
     if nargin<3, opt = struct(); end
-    if ~isfield(opt, 'type'), opt.type = 'morlet'; end
 	if nargin<4, Cs = ones(size(Tx,2),1); end
 	if nargin<5, freqband = size(Tx,1); end
-
-    % Find the admissibility coefficient Cpsi
-    Css = synsq_adm(opt.type, opt);
+	
+	%compute L2 norm of window to normalize inverse STFT with
+	windowfunc = wfiltfn(opt.type,opt,false);
+	C = quadgk(@(x) windowfunc(x).^2, -Inf, Inf);
+	%quadgk is a bit inaccurate with the bump function, this scales it correctly
+	if strcmpi(opt.type,'bump')
+		C=C*0.8675;
+	end
 	
 	% Invert Tx around curve masks in the time-frequency plane to recover
 	% individual components; last one is the remaining signal
@@ -57,9 +61,8 @@ function x = synsq_cwt_iw(Tx, fs, opt, Cs, freqband)
 			TxMask(LowerCs(m):UpperCs(m),m) = Tx(LowerCs(m):UpperCs(m), m);
 			TxRemainder(LowerCs(m):UpperCs(m),m) = 0;
 		end
-		% Due to linear discretization of integral in log(fs), this becomes a simple normalized sum.
-		x(:,n) = 1/Css*sum(real(TxMask),1).';
+		x(:,n) = 1/(pi*C)*sum(real(TxMask),1).';
 	end
-	x(:,n+1) = 1/Css*sum(real(TxRemainder),1).';
+	x(:,n+1) = 1/(pi*C)*sum(real(TxRemainder),1).';
 	x = x.';
 end

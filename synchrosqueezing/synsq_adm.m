@@ -4,9 +4,9 @@
 % R_\psi in Eq. 3 of [1].  Note, here we multiply R_\psi by the
 % inverse of log(2)/nv (found in Alg. 1 of that paper).
 %
-% 1. E. Brevdo, N.S. Fučkar, G. Thakur, and H-T. Wu, "The
-% Synchrosqueezing algorithm: a robust analysis tool for signals
-% with time-varying spectrum," 2011.
+% 1. G. Thakur, E. Brevdo, N.-S. Fučkar, and H.-T. Wu,
+% "The Synchrosqueezing algorithm for time-varying spectral analysis: robustness
+%  properties and new paleoclimate applications," Signal Processing, 93:1079-1094, 2013.
 %
 % Uses numerical integration.
 %

@@ -1,13 +1,10 @@
 % function gamma = est_riskshrink_thresh(Wx, nv)
 %
-% Estimate the RiskShrink hard thresholding level.
+% Estimate the RiskShrink hard thresholding level
 %
-% Implements Defn. 1 of Sec. 2.4 in [1], using the suggested
-% noise estimator from the discussion "Estimating the noise level"
-% in that same section.
+% Implements Eq. of [1].
 %
-% 1. Donoho, D.L.; I.M. Johnstone (1994), "Ideal spatial adaptation by
-%    wavelet shrinkage," Biometrika, vol 81, pp. 425–455.
+% 1. TODO, donoho & johnstone.
 %
 % Inputs:
 %  Wx: wavelet transform of a signal, see help cwt_fw
@@ -27,7 +24,7 @@ function gamma = est_riskshrink_thresh(Wx, nv)
     [na, n] = size(Wx);
 
     Wx_fine = abs(Wx(1:nv, :));
-
+    
     gamma = sqrt(2*log(n)) * mad(Wx_fine(:)) * 1.4826;
-
+    
 end % est_riskshrink_thresh
