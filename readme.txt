@@ -44,10 +44,6 @@ Installation
      addpath ~/matlab/synchrosqueezing;
      addpath ~/matlab/util;
 
-3. Go into the new directory and compile the necessary .mex files:
-     cd ~/matlab/synchrosqueezing;
-     compile_synsq;
-
 Basic command reference
 ------------------------
 
@@ -60,10 +56,10 @@ functions described below.
 
 cwt_fw, cwt_iw: continuous wavelet forward/inverse transform
 
-synsq_cwt_fw, synsq_cwt_iw: CWT synchrosqueezing
+synsq_cwt_fw, synsq_cwt_iw: CWT Synchrosqueezing
   forward/inverse transform.
 
-synsq_stft_fw, synsq_stft_iw: STFT synchrosqueezing
+synsq_stft_fw, synsq_stft_iw: STFT Synchrosqueezing
   forward/inverse transform.
 
 est_riskshrink_thresh: RiskShrink threshold estimator
@@ -71,13 +67,13 @@ est_riskshrink_thresh: RiskShrink threshold estimator
 
 tplot, tplot_power: plotting of output of cwt_fw, stft_fw, synsq_cwt, synsq_stft
 
-curve_ext_*: curve extraction from output of synsq_cwt
+curve_ext_*: different types of curve extraction from output of synsq_cwt or synsq_stft
 plot_ext_curves*: associated plotting functions
 
 synsq_filter_pass: frequency-region filtering in synchrosqueezing
 domain.
 
-examples: several quick example scripts for the above functions
+examples: several example scripts illustrating how the above functions work
 
 References
 -------------

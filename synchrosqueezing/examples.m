@@ -46,10 +46,10 @@ figure(); plot(t,[x,xNew(:,1)])
 %}
 
 
-% Blind source separation example using STFT Synchrosqueezing transform
+% Blind source separation using STFT Synchrosqueezing transform
 % computes Synchrosqueezing with high threshold, extracts curves in time-frequency plane
 % then repeats transform with lower threshold and inverts the transform
-
+%{
 STFTopt.gamma = 10^-3;
 [Tx, fs, Sx, Sfs, Sw, dSx] = synsq_stft_fw(t, x, STFTopt);	
 [Cs,freqband,bdTimes,LeftoverTx] = curve_ext_max(Tx, 2, 15, 4, STFTopt);
@@ -63,3 +63,4 @@ xNew = synsq_stft_iw(Tx, fs, STFTopt, Cs, freqband).';
 figure(); plot(t,[xNew(:,1:end-1)]); title('Separated components','FontSize',14); axis tight; xlabel('Time (seconds)','FontSize',14);
 figure(); plot(t,[xNew(:,1:end-1),x]); title('Separated components with original signal','FontSize',14); axis tight; xlabel('Time (seconds)','FontSize',14);
 P=get(gca, 'children'); set(gca,'children',[P(2:3);P(1)]);
+%}

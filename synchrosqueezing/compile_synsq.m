@@ -1,4 +1,4 @@
-% Compile MEX files for Synchrosqueezing toolbox
+% Compile MEX files for Synchrosqueezing toolbox (deprecated)
 %
 %---------------------------------------------------------------------------------
 %    Synchrosqueezing Toolbox
